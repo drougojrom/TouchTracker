@@ -28,6 +28,7 @@ class DrawView: UIView {
         }
     }
     
+    // var
     var currentLines = [NSValue:Line]()
     var finishedLines = [Line]()
     var selectedLineIndex: Int? {
@@ -38,6 +39,10 @@ class DrawView: UIView {
             }
         }
     }
+    
+    var moveRecognizer: UIPanGestureRecognizer!
+    //
+    
     
     required init?(coder aDecoder: NSCoder){
         super.init(coder: aDecoder)
@@ -52,6 +57,13 @@ class DrawView: UIView {
         tapRecognizer.delaysTouchesBegan = true
         tapRecognizer.requireGestureRecognizerToFail(doubleTapRecognizer)
         addGestureRecognizer(tapRecognizer)
+        
+        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(DrawView.longPress(_:)))
+        addGestureRecognizer(longPressRecognizer)
+        
+        moveRecognizer = UIPanGestureRecognizer(target: self, action: #selector(DrawView.moveLine(_:)))
+        moveRecognizer.cancelsTouchesInView = false
+        addGestureRecognizer(moveRecognizer)
         
     }
     
@@ -81,7 +93,7 @@ class DrawView: UIView {
             becomeFirstResponder()
             
             // create a new delete UIMenuItem
-            let deleteItem = UIMenuItem(title: "Delete", action: "deleteLine:")
+            let deleteItem = UIMenuItem(title: "Delete", action: #selector(DrawView.deleteLine(_:)))
             menu.menuItems = [deleteItem]
             
             // tell the menu where it should come from and show it
@@ -95,6 +107,27 @@ class DrawView: UIView {
         setNeedsDisplay()
     }
     
+    func longPress(gestureRecognizer: UIGestureRecognizer){
+        print("Recognized a long press")
+        
+        if gestureRecognizer.state == .Began {
+            let point = gestureRecognizer.locationInView(self)
+            selectedLineIndex = indexOfLineAtPoint(point)
+            
+            if selectedLineIndex != nil {
+                currentLines.removeAll(keepCapacity: false)
+            }
+        } else if gestureRecognizer.state == .Ended {
+            selectedLineIndex = nil
+        }
+        setNeedsDisplay()
+    }
+    
+    // moveLine func
+    
+    func moveLine(gestureRecognizer: UIPanGestureRecognizer){
+        print("gestureRecognizer a pan")
+    }
     
     // first responder for menu
     override func canBecomeFirstResponder() -> Bool {
