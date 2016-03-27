@@ -10,30 +10,58 @@ import UIKit
 
 class DrawView: UIView {
     
+    @IBInspectable var finishedLineColor = UIColor.blackColor() {
+        didSet {
+            setNeedsDisplay()
+        }
+    }
+    
+    @IBInspectable var currentLineColor = UIColor.redColor() {
+        didSet {
+            setNeedsDisplay()
+        }
+    }
+    
+    @IBInspectable var lineThickness: CGFloat = 10 {
+        didSet {
+            setNeedsDisplay()
+        }
+    }
+    
     var currentLines = [NSValue:Line]()
     var finishedLines = [Line]()
     
     func strokeLine(line: Line){
         let path = UIBezierPath()
-        path.lineWidth = 10
+        path.lineWidth = lineThickness
         path.lineCapStyle = CGLineCap.Round
         
         path.moveToPoint(line.begin)
         path.addLineToPoint(line.end)
-        
         path.stroke()
     }
     
     override func drawRect(rect: CGRect) {
         // draw finished line in black
-        UIColor.blackColor().setStroke()
+        finishedLineColor.setStroke()
+        
+        
         
         for line in finishedLines {
+            // get angle between two points
+            let deltaX = line.end.x - line.begin.x
+            let deltaY = line.end.y - line.begin.y
+            
+            // angle
+            let angleInDegrees = atan2(deltaX, deltaY) * 180 / CGFloat(M_PI)
+            let color = UIColor(white: angleInDegrees / 360, alpha: 0.5)
+            color.setStroke()
+            
             strokeLine(line)
         }
         
         // draw current lines in red
-        UIColor.redColor().setStroke()
+        currentLineColor.setStroke()
         for (_, line) in currentLines {
             strokeLine(line)
         }
@@ -88,6 +116,25 @@ class DrawView: UIView {
         
         currentLines.removeAll()
         setNeedsDisplay()
+    }
+    
+    required init?(coder aDecoder: NSCoder){
+        super.init(coder: aDecoder)
+        
+        let doubleTapRecognizer = UITapGestureRecognizer(target: self, action: "doubleTap:")
+        doubleTapRecognizer.numberOfTapsRequired = 2
+        addGestureRecognizer(doubleTapRecognizer)
+        
+    }
+    
+    func doubleTap(gestureRecognizer: UIGestureRecognizer){
+        print("Recognized a double tap")
+        
+        currentLines.removeAll(keepCapacity: false)
+        finishedLines.removeAll(keepCapacity: false)
+        
+        setNeedsDisplay()
+        
     }
     
 }
