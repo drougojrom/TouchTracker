@@ -126,6 +126,12 @@ class DrawView: UIView {
         doubleTapRecognizer.delaysTouchesBegan = true
         addGestureRecognizer(doubleTapRecognizer)
         
+        let tapRecognizer = UITapGestureRecognizer(target: self, action: "tap:")
+        tapRecognizer.numberOfTapsRequired = 1
+        tapRecognizer.delaysTouchesBegan = true
+        tapRecognizer.requireGestureRecognizerToFail(doubleTapRecognizer)
+        addGestureRecognizer(tapRecognizer)
+        
     }
     
     func doubleTap(gestureRecognizer: UIGestureRecognizer){
@@ -136,6 +142,10 @@ class DrawView: UIView {
         
         setNeedsDisplay()
         
+    }
+    
+    func tap(tapRecognizer: UIGestureRecognizer){
+        print("Recognized a tap")
     }
     
 }
