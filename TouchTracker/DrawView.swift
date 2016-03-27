@@ -30,6 +30,7 @@ class DrawView: UIView {
     
     var currentLines = [NSValue:Line]()
     var finishedLines = [Line]()
+    var selectedLineIndex: Int?
     
     func strokeLine(line: Line){
         let path = UIBezierPath()
@@ -64,6 +65,12 @@ class DrawView: UIView {
         currentLineColor.setStroke()
         for (_, line) in currentLines {
             strokeLine(line)
+        }
+        
+        if let index = selectedLineIndex {
+            UIColor.greenColor().setStroke()
+            let selectedLine = finishedLines[index]
+            strokeLine(selectedLine)
         }
         
     }
@@ -137,6 +144,8 @@ class DrawView: UIView {
     func doubleTap(gestureRecognizer: UIGestureRecognizer){
         print("Recognized a double tap")
         
+        selectedLineIndex = nil
+        
         currentLines.removeAll(keepCapacity: false)
         finishedLines.removeAll(keepCapacity: false)
         
@@ -144,8 +153,35 @@ class DrawView: UIView {
         
     }
     
-    func tap(tapRecognizer: UIGestureRecognizer){
+    func tap(gestureRecognizer: UIGestureRecognizer){
         print("Recognized a tap")
+        
+        let point = gestureRecognizer.locationInView(self)
+        selectedLineIndex = indexOfLineAtPoint(point)
+        
+        setNeedsDisplay()
+    }
+    
+    // method returns the index of line
+    func indexOfLineAtPoint(point: CGPoint) -> Int? {
+        for (index, line) in finishedLines.enumerate() {
+            let begin = line.begin
+            let end = line.end
+            
+            // check a few points of line
+            for t in CGFloat(0).stride(to: 1.0, by: 0.05){
+                let x = begin.x + ((end.x - begin.x) * t)
+                let y = begin.y + ((end.y - begin.y) * t)
+                
+                // if the tapped point is within 20 points, lets return this line
+                if hypot(x - point.x, y - point.y) < 20.0 {
+                    return index
+                }
+            }
+        }
+        
+        // if nothing is close to tap, return nil
+        return nil
     }
     
 }
