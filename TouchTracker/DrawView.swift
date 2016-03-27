@@ -10,7 +10,7 @@ import UIKit
 
 class DrawView: UIView {
     
-    var currentLine: Line?
+    var currentLines = [NSValue:Line]()
     var finishedLines = [Line]()
     
     func strokeLine(line: Line){
@@ -31,20 +31,54 @@ class DrawView: UIView {
         for line in finishedLines {
             strokeLine(line)
         }
-        if let line = currentLine {
-            // if there is a line being drawn, do it in red
-            UIColor.redColor().setStroke()
+        
+        // draw current lines in red
+        UIColor.redColor().setStroke()
+        for (_, line) in currentLines {
             strokeLine(line)
         }
+        
     }
     
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
-        let touch = touches.first!
+        // put in a log statement to see other events
+        print(#function)
         
-        // get location of touch
-        let location = touch.locationInView(self)
-        currentLine = Line(begin: location, end: location)
+        for touch in touches {
+            let location = touch.locationInView(self)
+            
+            let newLine = Line(begin: location, end: location)
+            let key = NSValue(nonretainedObject: touch)
+            currentLines[key] = newLine
+        }
         
+        setNeedsDisplay()
+    }
+    
+    override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        // put in a log statement to see other events
+        print(#function)
+        
+        for touch in touches {
+            let key = NSValue(nonretainedObject: touch)
+            currentLines[key]?.end = touch.locationInView(self)
+        }
+        setNeedsDisplay()
+    }
+    
+    override func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        
+        // put in a log statement to see other events
+        print(#function)
+        
+        for touch in touches {
+            let key = NSValue(nonretainedObject: touch)
+            if var line = currentLines[key]{
+                line.end = touch.locationInView(self)
+                finishedLines.append(line)
+                currentLines.removeValueForKey(key)
+            }
+        }
         setNeedsDisplay()
     }
     
