@@ -123,6 +123,7 @@ class DrawView: UIView {
         
         let doubleTapRecognizer = UITapGestureRecognizer(target: self, action: "doubleTap:")
         doubleTapRecognizer.numberOfTapsRequired = 2
+        doubleTapRecognizer.delaysTouchesBegan = true
         addGestureRecognizer(doubleTapRecognizer)
         
     }
