@@ -8,7 +8,7 @@
 
 import UIKit
 
-class DrawView: UIView {
+class DrawView: UIView, UIGestureRecognizerDelegate {
     
     @IBInspectable var finishedLineColor = UIColor.blackColor() {
         didSet {
@@ -62,9 +62,14 @@ class DrawView: UIView {
         addGestureRecognizer(longPressRecognizer)
         
         moveRecognizer = UIPanGestureRecognizer(target: self, action: #selector(DrawView.moveLine(_:)))
+        moveRecognizer.delegate = self
         moveRecognizer.cancelsTouchesInView = false
         addGestureRecognizer(moveRecognizer)
         
+    }
+    
+    func gestureRecognizer(gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
     
     func doubleTap(gestureRecognizer: UIGestureRecognizer){
@@ -127,6 +132,29 @@ class DrawView: UIView {
     
     func moveLine(gestureRecognizer: UIPanGestureRecognizer){
         print("gestureRecognizer a pan")
+        
+        // if a line is selected
+        if let index = selectedLineIndex {
+            // when the pan recognizer changes its position
+            if gestureRecognizer.state == .Changed {
+                // how far the pan moved?
+                let translation = gestureRecognizer.translationInView(self)
+                
+                // add the transation to the current beginning and end points
+                finishedLines[index].begin.x += translation.x
+                finishedLines[index].begin.y += translation.y
+                finishedLines[index].end.x += translation.x
+                finishedLines[index].end.y += translation.y
+                
+                gestureRecognizer.setTranslation(CGPoint.zero, inView: self)
+                
+                // redraw the display
+                setNeedsDisplay()
+            }
+        } else {
+            // if no line selected, dont do anything
+            return
+        }
     }
     
     // first responder for menu
